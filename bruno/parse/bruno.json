@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "parse",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

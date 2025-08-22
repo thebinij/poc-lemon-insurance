@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "name": "Lemon Insurance Backend",
+  "type": "collection",
+  "description": "Complete API testing collection for Lemon Insurance Backend with Insurance and Parse collections",
+  "ignore": [
+    "node_modules",
+    ".git",
+    ".DS_Store"
+  ]
+}

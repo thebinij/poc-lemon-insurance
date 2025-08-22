@@ -1,0 +1,35 @@
+meta {
+  name: Save Selected Plan
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/insurance/:insuranceType/SaveSelectedPlan
+  body: json
+  auth: none
+}
+
+params:path {
+  insuranceType: travel
+}
+
+body:json {
+   {
+      "sessionToken": "{{session_token}}",
+      "selectedPlan": [
+        "INSB1_API_OM6_CP_GO_OB"
+      ]
+    }
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  description: Save selected insurance plan
+  request: Sends plan selection to collection API
+  response: Returns 202 Accepted with request queued for Lambda processing
+  notes: This endpoint queues the request for async processing by Lambda
+}

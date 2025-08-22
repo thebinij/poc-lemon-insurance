@@ -1,0 +1,36 @@
+{
+  "name": "insurance-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function to process SQS messages from insurance service with Parse Server integration",
+  "main": "src/handler.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "start": "node src/handler.js",
+    "dev": "node src/handler.js",
+    "listen:sqs": "node src/handler.js",
+    "build": "npm install && zip -r ../function-prod.zip src/ package.json node_modules/ && echo '✅ Production package created: ../function-prod.zip'"
+  },
+  "keywords": [
+    "lambda",
+    "aws",
+    "sqs",
+    "insurance",
+    "parse-server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.490.0",
+    "@aws-sdk/client-secrets-manager": "^3.490.0",
+    "@aws-sdk/credential-providers": "^3.490.0",
+    "uuid": "^10.0.0",
+    "parse": "^6.1.1",
+    "mongodb": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

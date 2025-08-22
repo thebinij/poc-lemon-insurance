@@ -1,0 +1,7 @@
+# Bruno cache and temporary files
+.bruno/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

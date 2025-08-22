@@ -1,0 +1,22 @@
+meta {
+  name: Insurance API Health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/insurance/health
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  description: Check insurance API health
+  request: Health check for insurance collection API
+  response: Returns API health status and supported insurance types
+  notes: This endpoint checks if the insurance collection API is running
+}

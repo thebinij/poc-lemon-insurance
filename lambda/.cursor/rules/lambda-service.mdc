@@ -1,0 +1,124 @@
+---
+name: Lambda Service Development Rules
+description:
+globs:
+alwaysApply: false
+---
+
+# Lambda Service Development Rules
+
+## Core Principles
+
+### Data Access Strategy
+- **Parse Server is the ONLY data access layer** - No direct MongoDB connections
+- **Use Parse Client** - All database operations through Parse Server SDK
+- **Master Key Operations** - Use master key for server-side operations
+- **No Direct Database Access** - All data goes through Parse Server
+
+### SQS Message Processing
+- **Batch Processing** - Handle multiple messages efficiently
+- **Error Handling** - Implement proper retry logic and dead letter queues
+- **Idempotency** - Ensure operations can be safely retried
+- **Logging** - Comprehensive logging for debugging and monitoring
+
+### Event-Driven Architecture
+- **Event Types** - Handle different event types (USER_SIGNUP, USER_LOGIN, etc.)
+- **Workflow Creation** - Create appropriate workflow records for each event
+- **Status Updates** - Update event status from "work" to "done"
+- **Custom Records** - Create event-specific collections as needed
+
+## Required Code Structure
+
+### Lambda Handler Pattern
+```javascript
+exports.handler = async (event, context) => {
+  console.log('🚀 Lambda function triggered');
+  console.log('📥 Event:', JSON.stringify(event, null, 2));
+  
+  const results = [];
+  const batchItemFailures = [];
+  
+  try {
+    // Process each message in the batch
+    for (const record of event.Records) {
+      // Process individual message
+    }
+    
+    // Return batch item failures if any messages failed
+    if (batchItemFailures.length > 0) {
+      return { batchItemFailures, results };
+    }
+    
+    return { statusCode: 200, body: { results } };
+  } catch (error) {
+    console.error('💥 Lambda function error:', error);
+    throw error;
+  }
+};
+```
+
+### Parse Server Integration
+```javascript
+// Always use Parse Client, never direct database access
+const parseClient = new ParseClient();
+
+// Use master key for server-side operations
+await parseClient.updateAuthEventStatus(eventId, 'done', requestId);
+
+// Create custom collections as needed
+await parseClient.createCustomRecord('UserOnboarding', {
+  userId: message.userId,
+  status: 'initiated',
+  // ... other fields
+});
+```
+
+### Error Handling Pattern
+```javascript
+try {
+  // Operation
+} catch (error) {
+  console.error('❌ Error description:', error);
+  
+  // Don't fail entire batch for non-critical errors
+  // Log and continue, or add to batch failures if critical
+  if (isCriticalError(error)) {
+    batchItemFailures.push({ itemIdentifier: record.messageId });
+  }
+}
+```
+
+## Testing Requirements
+
+- **Minimum 80% coverage** for all business logic
+- **Mock external dependencies** (Parse Server, SQS)
+- **Test error scenarios** and edge cases
+- **Test different event types** and message formats
+
+## Performance Requirements
+
+- **Target**: Process messages within 5 seconds
+- **Timeout**: Lambda timeout set to 30 seconds
+- **Batch Size**: Handle up to 10 messages per batch
+- **Memory Usage**: Efficient parsing and minimal object creation
+
+## Security Requirements
+
+- **Parse Server master key** for all operations
+- **No hardcoded credentials** in code
+- **Input sanitization** for all message data
+- **No sensitive data** in error logs
+
+## Rule Enforcement Checklist
+
+**BEFORE making any Lambda changes, verify:**
+
+- [ ] **Parse Server is the ONLY data access layer** - No direct MongoDB connections
+- [ ] **Parse Client is used** - All database operations through Parse SDK
+- [ ] **Master key operations** - Server-side operations use master key
+- [ ] **Proper error handling** - Errors are logged and handled gracefully
+- [ ] **Batch processing** - Multiple messages are processed efficiently
+- [ ] **Test coverage** - New functionality has adequate tests
+- [ ] **Performance requirements** - Execution time and memory usage are optimized
+
+**If any rule is violated, STOP and fix it before continuing.**

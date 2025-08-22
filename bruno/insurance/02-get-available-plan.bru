@@ -1,0 +1,61 @@
+meta {
+  name: Get Available Plans
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/insurance/:insuranceType/GetAvailablePlans
+  body: json
+  auth: none
+}
+
+params:path {
+  insuranceType: travel
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "insuredDetail": {
+        "fullName": "Test User",
+        "extension": "+968",
+        "mobileNumber": "98201092",
+        "email": "test@example.com"
+      },
+      "travelDetail": {
+        "tripType": "one-way",
+        "departureCountry": "OM",
+        "destinationCountry": "AF",
+        "departureDate": "2025-08-24",
+        "adultCount": "1",
+        "childCount": "0",
+        "infantCount": "0"
+      }
+    }
+}
+
+script:post-response {
+  if (res.getStatus() === 202) {
+      const responseData = res.getBody();
+      if (responseData.data.sessionToken) {
+          bru.setEnvVar("session_token", responseData.data.sessionToken);
+      }
+  } else {
+      console.error("Unexpected response code:", res.getStatus());
+  }
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  description: Get available travel insurance plans
+  request: Sends travel insurance plan request to collection API
+  response: Returns 202 Accepted with request queued for Lambda processing
+  notes: This endpoint queues the request for async processing by Lambda, returns session token
+}

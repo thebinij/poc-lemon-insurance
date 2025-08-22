@@ -1,0 +1,78 @@
+
+services:
+  # # MongoDB - Database for Parse Server
+  # mongodb:
+  #   image: mongo:6.0
+  #   container_name: mongodb
+  #   restart: unless-stopped
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+  #     MONGO_INITDB_DATABASE: lemon-insurance
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #     - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  #   networks:
+  #     - localstack-network
+
+  # LocalStack - AWS services emulator
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"      # LocalStack main port
+      - "4510-4559:4510-4559"  # External service port range
+    environment:
+      - SERVICES=sqs,lambda,secretsmanager
+      - DEBUG=0
+      - LOG_LEVEL=WARN
+      - PERSISTENCE=1
+      - GATEWAY_LISTEN=0.0.0.0:4566
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+      - LAMBDA_PROVIDER=v2
+    volumes:
+      - "localstack_data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    # depends_on:
+    #   - mongodb
+    networks:
+      - localstack-network
+
+  # Parse Server - Backend as a Service
+  parse-server:
+    image: parseplatform/parse-server:latest
+    container_name: parse-server
+    restart: unless-stopped
+    ports:
+      - "1337:1337"
+    environment:
+      - PARSE_SERVER_APPLICATION_ID=lemon-insurance-app-id
+      - PARSE_SERVER_MASTER_KEY=lemon-insurance-master-key
+      - PARSE_SERVER_JS_KEY=lemon-insurance-js-key
+      - PARSE_SERVER_SERVER_URL=http://localhost:1337/parse
+      - PARSE_SERVER_DATABASE_URI=mongodb://140.238.225.133:30127/poc-lemon
+      - PARSE_SERVER_VERBOSE=true
+      - PARSE_SERVER_LOGS_LEVEL=info
+      - PARSE_SERVER_MAX_UPLOAD_SIZE=20mb
+      - PARSE_SERVER_MASTER_KEY_IPS=0.0.0.0/0
+      # - PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION=false
+      # - PARSE_SERVER_ALLOW_CUSTOM_OBJECT_ID=false
+      # - PARSE_SERVER_ENABLE_ANONYMOUS_USERS=false
+    # depends_on:
+    #   - mongodb
+    networks:
+      - localstack-network
+    volumes:
+      - parse_files:/parse-server/files
+
+networks:
+  localstack-network:
+    driver: bridge
+
+volumes:
+  localstack_data:
+  parse_files:
+  # mongodb_data:

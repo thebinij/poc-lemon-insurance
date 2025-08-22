@@ -1,0 +1,77 @@
+# ======================
+# Node.js
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+*.tsbuildinfo
+
+# ======================
+# Logs
+# ======================
+logs/
+*.log
+*.log.*
+log/
+debug.log
+error.log
+
+# ======================
+# Environment Variables
+# ======================
+.env
+.env.*        # For .env.development, .env.production, etc.
+
+# ======================
+# Coverage / Testing
+# ======================
+coverage/
+.nyc_output/
+jest-test-results.json
+/lambda/.serverless/
+.auth-service/.serverless/
+
+# ======================
+# Serverless
+# ======================
+.serverless/
+.webpack/
+
+# ======================
+# Docker
+# ======================
+/volume/
+docker-compose.override.yml
+
+# ======================
+# IDE / Editor
+# ======================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# ======================
+# Build Artifacts
+# ======================
+dist/
+build/
+out/
+tmp/
+temp/
+
+# ======================
+# OS Files
+# ======================
+Thumbs.db
+.DS_Store
+
+
+function-prod.zip
+lambda-policy.json
+trust-policy.json
+help.md

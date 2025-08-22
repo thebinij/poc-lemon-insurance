@@ -1,0 +1,36 @@
+meta {
+  name: Confirm Purchase
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/insurance/ConfirmPurchase
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "insuranceType": "travel",
+    "sessionToken": "{{session_token}}",
+    "channelCode": "direct",
+    "channel": "direct",
+    "source": "direct"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  description: Confirm insurance purchase
+  request: Sends purchase confirmation to collection API
+  response: Returns 202 Accepted with request queued for Lambda processing
+  notes: This endpoint queues the request for async processing by Lambda
+}
+
+settings {
+  encodeUrl: true
+}

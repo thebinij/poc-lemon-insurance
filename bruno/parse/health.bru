@@ -1,0 +1,17 @@
+meta {
+  name: Parse Server Health
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{parseUrl}}/parse/health
+  body: none
+  auth: none
+}
+
+docs {
+  description: Check Parse Server health status
+  response: Returns Parse Server health information
+  notes: This endpoint verifies Parse Server is running and accessible
+}

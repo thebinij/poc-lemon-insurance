@@ -1,0 +1,57 @@
+meta {
+  name: Proceed Payment
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/insurance/ProceedPayment
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "insuranceType": "travel",
+    "amount": 10.7,
+    "channelCode": "direct",
+    "channel": "direct",
+    "source": "direct",
+    "success_url": "https://uattravel.livainsurance.om/en/direct/payment-success?sessionId={{session_token}}",
+    "cancel_url": "https://uattravel.livainsurance.om/en/direct/payment-failed?sessionId={{session_token}}",
+    "sessionToken": "{{session_token}}",
+    "passengers": [
+      {
+        "fullName": "TEST NEW UATi",
+        "dateOfBirth": "2001-08-22",
+        "passportNumber": "12123423",
+        "nationality": "AF",
+        "gender": "male",
+        "civilId": "",
+        "classification": "adult",
+        "isPrimary": true
+      }
+    ],
+    "additionalInfo": {
+      "nationality": "AL",
+      "dateOfBirth": "2003-08-24",
+      "passportNumber": "10949334"
+    },
+    "utmParams": "utm_source=google&utm_medium=cpc&utm_campaign=gsa_travel_gi"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  description: Proceed with insurance payment
+  request: Sends payment request to collection API
+  response: Returns 202 Accepted with request queued for Lambda processing
+  notes: This endpoint queues the request for async processing by Lambda
+}
+
+settings {
+  encodeUrl: true
+}

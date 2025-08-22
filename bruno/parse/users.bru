@@ -1,0 +1,23 @@
+meta {
+  name: Parse Server Users
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{parseUrl}}/parse/classes/_User
+  body: none
+  auth: basic
+}
+
+headers {
+  X-Parse-Application-Id: {{parseAppId}}
+  X-Parse-Master-Key: {{parseMasterKey}}
+}
+
+docs {
+  description: Get all users from Parse Server
+  request: Requires Parse Server application ID and master key
+  response: Returns list of all users stored in Parse Server
+  notes: This endpoint directly queries Parse Server's User collection
+}
