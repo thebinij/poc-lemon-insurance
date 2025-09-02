@@ -1,21 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const parseService = require('../services/parseService');
-const sqsService = require('../services/sqsService');
 const { validateInsuranceRequest } = require('../validation/insuranceValidation');
 const { v4: uuidv4 } = require('uuid');
 
+const ValidationError = require('../errors/validationError');
+const AuthError = require('../errors/authErrror');
+const asyncHandler = require('../utils/asyncHandler');
+
 // Health check
 router.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
     message: 'Insurance API health check successful',
     data: {
-      status: 'healthy', 
-      supportedTypes: ['travel', 'motor', 'health'],
+      status: 'healthy',
+      supportedTypes: ['travel', 'motor'],
       endpoints: [
         '/:insuranceType/GetAvailablePlans',
-        '/:insuranceType/SaveSelectedPlan', 
+        '/:insuranceType/SaveSelectedPlan',
         '/:insuranceType/ProceedPayment',
         '/:insuranceType/ConfirmPurchase'
       ],
@@ -24,281 +27,218 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Generic Insurance API Endpoints with Path Parameters
+// Generic Insurance API Endpoints
+// 1. Get Available Plans
+router.post('/:insuranceType/GetAvailablePlans', asyncHandler(async (req, res) => {
+  const requestId = uuidv4();
+  const { insuranceType } = req.params;
+  const requestData = req.body;
 
-// 1. Get Available Plans (Generic)
-router.post('/:insuranceType/GetAvailablePlans', async (req, res) => {
-  try {
-    const requestId = uuidv4();
-    const { insuranceType } = req.params;
-    const requestData = req.body;
-    
-    // Validate request using validation layer with path parameter
-    const validation = validateInsuranceRequest(insuranceType, 'GetAvailablePlans', requestData);
-    if (!validation.valid) {
-      return res.status(400).json({ 
-        success: false,
-        message: validation.error,
-        data: null
-      });
-    }
-
-    // Create event record in Parse
-    const eventData = {
-      eventType: 'GET_AVAILABLE_PLANS',
-      requestId,
-      insuranceType,
-      data: validation.data
-    };
-
-    const event = await parseService.createInsuranceEvent(eventData);
-
-    // Send to SQS for Lambda processing
-    const message = {
-      eventId: event.id,
-      eventType: 'GET_AVAILABLE_PLANS',
-      requestId,
-      insuranceType,
-      data: validation.data,
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    };
-
-    await sqsService.publishToSQS(message);
-    
-    // Generate session token for this request (only in first step)
-    const sessionToken = uuidv4();
-    
-    res.status(202).json({
-      success: true,
-      message: `${insuranceType.charAt(0).toUpperCase() + insuranceType.slice(1)} available plans request received and queued for processing`,
-      data: {
-        requestId,
-        eventId: event.id,
-        insuranceType,
-        status: 'pending',
-        sessionToken,
-        requestData: validation.data
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error queuing available plans request:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to queue available plans request',
-      data: null
-    });
+  // Step 1: Validate request using validation layer with path parameter
+  const validation = validateInsuranceRequest(insuranceType, 'GetAvailablePlans', requestData);
+  if (!validation.valid) {
+    throw new ValidationError(validation.error);
   }
-});
 
-// 2. Save Selected Plan (Generic)
-router.post('/:insuranceType/SaveSelectedPlan', async (req, res) => {
-  try {
-    const requestId = uuidv4();
-    const { insuranceType } = req.params;
-    const requestData = req.body;
-    
-    // Validate request using validation layer with path parameter
-    const validation = validateInsuranceRequest(insuranceType, 'SaveSelectedPlan', requestData);
-    if (!validation.valid) {
-      return res.status(400).json({ 
-        success: false,
-        message: validation.error,
-        data: null
-      });
+  // Step 2: Create new user
+  const userInfo = await parseService.createUser({
+    insuranceType: insuranceType,
+    email: req.body.email,
+    phone: req.body.phone,
+    name: req.body.name,
+    ipAddress: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+
+  // Step 3: Log API call
+  await parseService.logAPICall({
+    insuranceType,
+    userId: userInfo.userId,
+    requestId,
+    endpoint: `/${insuranceType}/GetAvailablePlans`,
+    step: 'GetAvailablePlans',
+    method: req.method,
+    request: req.body,
+    headers: req.headers,
+    ipAddress: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+
+  const response = {
+    success: true,
+    message: `Available ${insuranceType} plans retrieved`,
+    data: {
+      requestId,
+      sessionToken: userInfo.sessionToken,
+      userId: userInfo.userId,
+      isNewUser: userInfo.isNewUser,
+      plans: [
+        { id: 'plan1', name: `Basic ${insuranceType} Plan`, premium: 100 },
+        { id: 'plan2', name: `Premium ${insuranceType} Plan`, premium: 200 }
+      ]
     }
+  };
 
-    // Create event record in Parse
-    const eventData = {
-      eventType: 'SAVE_SELECTED_PLAN',
-      requestId,
-      insuranceType,
-      data: validation.data
-    };
+  await parseService.updateAPILog(requestId, insuranceType, {
+    status: 'success',
+    response: response,
+    responseTime: 150
+  });
 
-    const event = await parseService.createInsuranceEvent(eventData);
+  res.json(response);
+}));
 
-    // Send to SQS for Lambda processing
-    const message = {
-      eventId: event.id,
-      eventType: 'SAVE_SELECTED_PLAN',
-      requestId,
-      insuranceType,
-      data: validation.data,
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    };
+// 2. Save Selected Plan
+router.post('/:insuranceType/SaveSelectedPlan', asyncHandler(async (req, res) => {
+  const requestId = uuidv4();
+  const { insuranceType } = req.params;
+  const requestData = req.body;
 
-    await sqsService.publishToSQS(message);
-    
-    res.status(202).json({
-      success: true,
-      message: `${insuranceType.charAt(0).toUpperCase() + insuranceType.slice(1)} plan selection saved and queued for processing`,
-      data: {
-        requestId,
-        eventId: event.id,
-        insuranceType,
-        status: 'pending',
-        requestData: validation.data
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error queuing plan selection:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to queue plan selection',
-      data: null
-    });
+  // Step 1: Validate request using validation layer with path parameter
+  const validation = validateInsuranceRequest(insuranceType, 'SaveSelectedPlan', requestData);
+  if (!validation.valid) {
+    throw new ValidationError(validation.error);
   }
-});
 
-// 3. Proceed Payment (Generic)
-router.post('/:insuranceType/ProceedPayment', async (req, res) => {
-  try {
-    const requestId = uuidv4();
-    const { insuranceType } = req.params;
-    const requestData = req.body;
-    
-    // Validate request using validation layer with path parameter
-    const validation = validateInsuranceRequest(insuranceType, 'ProceedPayment', requestData);
-    if (!validation.valid) {
-      return res.status(400).json({ 
-        success: false,
-        message: validation.error,
-        data: null
-      });
+  // Step 2: Validate session
+  const user = await parseService.getUserBySessionToken(req.body.sessionToken);
+  if (!user) {
+    throw new AuthError('Invalid or expired sessionToken');
+  }
+
+  // Step 3: Log API call
+  await parseService.logAPICall({
+    insuranceType,
+    userId: user.id,
+    requestId,
+    endpoint: `/${insuranceType}/SaveSelectedPlan`,
+    step: 'SaveSelectedPlan',
+    method: req.method,
+    request: req.body,
+    headers: req.headers,
+    ipAddress: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+
+  const response = {
+    success: true,
+    message: `${insuranceType} plan saved successfully`,
+    data: {
+      requestId,
+      savedPlanId: `saved_${requestId}`,
+      planId: req.body.planId
     }
+  };
 
-    // Create event record in Parse
-    const eventData = {
-      eventType: 'PROCEED_PAYMENT',
-      requestId,
-      insuranceType,
-      data: validation.data
-    };
+  await parseService.updateAPILog(requestId, insuranceType, {
+    status: 'success',
+    response: response,
+    responseTime: 100
+  });
 
-    const event = await parseService.createInsuranceEvent(eventData);
+  res.json(response);
+}));
 
-    // Send to SQS for Lambda processing
-    const message = {
-      eventId: event.id,
-      eventType: 'PROCEED_PAYMENT',
-      requestId,
-      insuranceType,
-      data: validation.data,
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    };
+// 3. Proceed Payment
+router.post('/:insuranceType/ProceedPayment', asyncHandler(async (req, res) => {
+  const requestId = uuidv4();
+  const { insuranceType } = req.params;
+  const requestData = req.body;
 
-    await sqsService.publishToSQS(message);
-    
-    res.status(202).json({
-      success: true,
-      message: `${insuranceType.charAt(0).toUpperCase() + insuranceType.slice(1)} payment request received and queued for processing`,
-      data: {
-        requestId,
-        eventId: event.id,
-        insuranceType,
-        status: 'pending',
-        requestData: validation.data
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error queuing payment request:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to queue payment request',
-      data: null
-    });
+  // Step 1: Validate request using validation layer with path parameter
+  const validation = validateInsuranceRequest(insuranceType, 'ProceedPayment', requestData);
+  if (!validation.valid) {
+    throw new ValidationError(validation.error);
   }
-});
 
-// 4. Confirm Purchase (Generic)
-router.post('/:insuranceType/ConfirmPurchase', async (req, res) => {
-  try {
+  // Step 2: Validate session
+  const user = await parseService.getUserBySessionToken(req.body.sessionToken);
+  if (!user) {
+    throw new AuthError('Invalid or expired sessionToken');
+  }
+
+  // Step 3: Log API call
+  await parseService.logAPICall({
+    insuranceType,
+    userId: user.id,
+    requestId,
+    endpoint: `/${insuranceType}/ProceedPayment`,
+    step: 'ProceedPayment',
+    method: req.method,
+    request: req.body,
+    headers: req.headers,
+    ipAddress: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+
+  const response = {
+    success: true,
+    message: `${insuranceType} payment processed`,
+    data: {
+      requestId,
+      paymentId: `pay_${requestId}`,
+      status: 'completed'
+    }
+  };
+
+  await parseService.updateAPILog(requestId, insuranceType, {
+    status: 'success',
+    response: response,
+    responseTime: 200
+  });
+
+  res.json(response);
+}));
+
+// 4. Confirm Purchase
+router.post('/:insuranceType/ConfirmPurchase', asyncHandler(async (req, res) => {
     const requestId = uuidv4();
     const { insuranceType } = req.params;
     const requestData = req.body;
-    
-    // Validate request using validation layer with path parameter
+
+    // Step 1: Validate request using validation layer with path parameter
     const validation = validateInsuranceRequest(insuranceType, 'ConfirmPurchase', requestData);
     if (!validation.valid) {
-      return res.status(400).json({ 
-        success: false,
-        message: validation.error,
-        data: null
-      });
+      throw new ValidationError(validation.error);
     }
 
-    // Create event record in Parse
-    const eventData = {
-      eventType: 'CONFIRM_PURCHASE',
-      requestId,
+    // Step 2: Validate session
+    const user = await parseService.getUserBySessionToken(req.body.sessionToken);
+    if (!user) {
+      throw new AuthError('Invalid or expired sessionToken');
+    }
+
+    // Step 3: Log API call
+    await parseService.logAPICall({
       insuranceType,
-      data: validation.data
-    };
-
-    const event = await parseService.createInsuranceEvent(eventData);
-
-    // Send to SQS for Lambda processing
-    const message = {
-      eventId: event.id,
-      eventType: 'CONFIRM_PURCHASE',
+      userId: user.id,
       requestId,
-      insuranceType,
-      data: validation.data,
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    };
+      endpoint: `/${insuranceType}/ConfirmPurchase`,
+      step: 'ConfirmPurchase',
+      method: req.method,
+      request: req.body,
+      headers: req.headers,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
 
-    await sqsService.publishToSQS(message);
-    
-    res.status(202).json({
+    const response = {
       success: true,
-      message: `${insuranceType.charAt(0).toUpperCase() + insuranceType.slice(1)} purchase confirmation received and queued for processing`,
+      message: `${insuranceType} purchase confirmed`,
       data: {
         requestId,
-        eventId: event.id,
-        insuranceType,
-        status: 'pending',
-        requestData: validation.data
+        policyId: `policy_${requestId}`,
+        confirmationNumber: `conf_${requestId.substring(0, 8)}`
       }
-    });
-    
-  } catch (error) {
-    console.error('Error queuing purchase confirmation:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to queue purchase confirmation',
-      data: null
-    });
-  }
-});
+    };
 
-// Legacy endpoints for backward compatibility (redirect to generic endpoints)
-router.post('/policies', async (req, res) => {
-  // Redirect to GetAvailablePlans with insurance type from body
-  const insuranceType = req.body.insuranceType || 'general';
-  req.body.eventType = 'CREATE_POLICY';
-  return router.handle(req, res, () => {
-    req.url = `/${insuranceType}/GetAvailablePlans`;
-    req.params.insuranceType = insuranceType;
-    router.handle(req, res);
-  });
-});
+    await parseService.updateAPILog(requestId, insuranceType, {
+      status: 'success',
+      response: response,
+      responseTime: 180
+    });
 
-router.post('/claims', async (req, res) => {
-  // Redirect to ProceedPayment for claim processing with insurance type from body
-  const insuranceType = req.body.insuranceType || 'general';
-  req.body.eventType = 'CREATE_CLAIM';
-  return router.handle(req, res, () => {
-    req.url = `/${insuranceType}/ProceedPayment`;
-    req.params.insuranceType = insuranceType;
-    router.handle(req, res);
-  });
-});
+    res.json(response);
+}));
 
 module.exports = router;

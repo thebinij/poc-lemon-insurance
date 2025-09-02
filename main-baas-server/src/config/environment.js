@@ -1,7 +1,3 @@
-/**
- * Centralized Environment Configuration
- * All environment variables are defined here with proper defaults
- */
 
 // Load environment variables from .env file
 require('dotenv').config();
@@ -70,13 +66,6 @@ const config = {
     enableFileLogs: process.env.ENABLE_FILE_LOGS === 'false'
   },
 
-  // Feature Flags
-  features: {
-    enableSQS: process.env.ENABLE_SQS !== 'false',
-    enableParseServer: process.env.ENABLE_PARSE_SERVER !== 'false',
-    enableValidation: process.env.ENABLE_VALIDATION !== 'false',
-    enableHealthChecks: process.env.ENABLE_HEALTH_CHECKS !== 'false'
-  }
 };
 
 // Helper functions

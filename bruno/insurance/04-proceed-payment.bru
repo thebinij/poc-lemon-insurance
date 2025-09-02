@@ -5,9 +5,17 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/insurance/ProceedPayment
+  url: {{baseUrl}}/api/insurance/:insuranceType/ProceedPayment
   body: none
   auth: inherit
+}
+
+params:path {
+  insuranceType: travel
+}
+
+headers {
+  Content-Type: application/json
 }
 
 body:json {
@@ -41,8 +49,8 @@ body:json {
   }
 }
 
-headers {
-  Content-Type: application/json
+settings {
+  encodeUrl: true
 }
 
 docs {
@@ -50,8 +58,4 @@ docs {
   request: Sends payment request to collection API
   response: Returns 202 Accepted with request queued for Lambda processing
   notes: This endpoint queues the request for async processing by Lambda
-}
-
-settings {
-  encodeUrl: true
 }

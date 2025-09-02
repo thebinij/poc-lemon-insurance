@@ -30,7 +30,7 @@ body:json {
         "tripType": "one-way",
         "departureCountry": "OM",
         "destinationCountry": "AF",
-        "departureDate": "2025-08-24",
+        "departureDate": "2025-09-24",
         "adultCount": "1",
         "childCount": "0",
         "infantCount": "0"
@@ -39,7 +39,7 @@ body:json {
 }
 
 script:post-response {
-  if (res.getStatus() === 202) {
+  if (res.getStatus() === 200) {
       const responseData = res.getBody();
       if (responseData.data.sessionToken) {
           bru.setEnvVar("session_token", responseData.data.sessionToken);

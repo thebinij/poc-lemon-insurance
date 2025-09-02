@@ -2,23 +2,16 @@
   "name": "lemon-insurance-backend",
   "version": "1.0.0",
   "description": "Backend project with Main Baas Server, Parse Server, SQS, and Lambda integration",
-  "main": "index.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "concurrently \"npm run dev:main-baas\" \"npm run dev:lambda\"",
-    "dev:main-baas": "cd main-baas-server && npm run dev",
-    "dev:lambda": "cd lambda && npm run listen:sqs",
+    "dev:main": "cd main-baas-server && npm run dev",
     "dev:bruno": "concurrently \"cd bruno/insurance && npx @usebruno/cli run\" \"cd bruno/parse && npx @usebruno/cli run\"",
-    "test": "npm run test:main-baas",
-    "test:main-baas": "cd main-baas-server && npm test",
+    "test:main": "cd main-baas-server && npm test",
     "setup": "npm install && cd main-baas-server && npm install && cd ../lambda && npm install",
-    "setup:localstack": "chmod +x scripts/setup-localstack.sh && ./scripts/setup-localstack.sh",
-    "prepare:deploy": "cd lambda && npm run build",
-    "seed": "node scripts/seed-parse-server.js",
-    "start:all": "npm run setup:localstack && npm run dev"
+    "seed": "node scripts/seed-parse-server.js"
   },
   "keywords": [
     "nodejs",
@@ -30,7 +23,7 @@
     "lambda",
     "localstack"
   ],
-  "author": "",
+  "author": "Binij Shrestha<shresthabinij@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2",

@@ -1,31 +1,27 @@
 const Parse = require('parse-server').ParseServer;
-const FSFilesAdapter = require('parse-server-fs-adapter');
+const config = require('./environment');
 
 const parseConfig = {
-  databaseURI: process.env.MONGODB_URI || 'mongodb://localhost:27017/lemon-insurance',
-  appId: process.env.PARSE_APP_ID || 'lemon-insurance-app-id',
-  masterKey: process.env.PARSE_MASTER_KEY || 'lemon-insurance-master-key',
-  serverURL: process.env.PARSE_SERVER_URL || 'http://localhost:1337/parse',
-  publicServerURL: process.env.PARSE_PUBLIC_SERVER_URL || 'http://localhost:1337/parse',
+  databaseURI: config.mongodb.uri,
+  
+  appId: config.parse.appId,
+  masterKey: config.parse.masterKey,
+  serverURL: config.parse.serverUrl,
+  publicServerURL: config.parse.publicServerUrl,
   
   // Security settings
   allowClientClassCreation: false,
   allowCustomObjectId: false,
   enableAnonymousUsers: false,
   
-  // File storage (using local file system for development)
-  filesAdapter: new FSFilesAdapter({
-    filesSubDirectory: 'files'
-  }),
-  
   // LiveQuery (optional)
   liveQuery: {
     classNames: ['User', 'AuthEvent', 'Workflow']
   },
   
-  // Logging
-  verbose: process.env.NODE_ENV === 'development',
-  logLevel: process.env.LOG_LEVEL || 'info',
+  // Logging - use environment configuration
+  verbose: config.isDevelopment(),
+  logLevel: config.logging.level,
   
   // Custom Parse Server options
   maxUploadSize: '20mb',
@@ -50,7 +46,7 @@ const parseConfig = {
         userId: { type: 'String', required: true },
         email: { type: 'String', required: true },
         timestamp: { type: 'Date', required: true },
-        status: { type: 'String', defaultValue: 'work' },
+        status: { type: 'String', defaultValue: 'active' },
         metadata: { type: 'Object' }
       }
     },
@@ -66,5 +62,13 @@ const parseConfig = {
     }
   }
 };
+
+// Validate configuration before exporting
+try {
+  config.validate();
+} catch (error) {
+  console.error('Parse Server configuration validation failed:', error.message);
+  process.exit(1);
+}
 
 module.exports = parseConfig;

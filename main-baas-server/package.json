@@ -2,14 +2,15 @@
   "name": "main-baas-server",
   "version": "1.0.0",
   "description": "Main Baas Server with Parse Server and SQS integration",
-  "main": "src/server.js",
+  "main": "src/main.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
   "scripts": {
     "start": "node src/main.js",
-    "dev": "nodemon src/server.js",
+    "dev": "nodemon src/main.js",
+    "migrate": "node src/scripts/migrate-parse.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -17,19 +18,18 @@
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.490.0",
     "@aws-sdk/credential-providers": "^3.490.0",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
     "helmet": "^8.0.0",
-    "joi": "^17.13.3",
+    "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.5.0",
     "morgan": "^1.10.0",
     "parse": "^6.1.1",
-    "parse-server": "^6.3.0",
-    "parse-server-fs-adapter": "^1.0.0",
-    "uuid": "^10.0.0"
+    "parse-server": "^8.2.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -45,6 +45,5 @@
     "aws",
     "sqs"
   ],
-  "author": "",
   "license": "MIT"
 }
