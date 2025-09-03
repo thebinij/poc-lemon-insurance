@@ -1,31 +1,17 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-/**
- * @route GET /health
- * @desc Health check endpoint
- */
-router.get('/', (req, res) => {
+// Health check
+router.get('/health', (req, res) => {
   res.json({
-    status: 'healthy',
-    service: 'auth-service',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    success: true,
+    message: 'Insurance API health check successful',
+    data: {
+      status: 'healthy',
+      supportedTypes: ['travel', 'motor'],
+      timestamp: new Date().toISOString()
+    }
   });
 });
 
-/**
- * @route GET /health/ready
- * @desc Readiness check endpoint
- */
-router.get('/ready', (req, res) => {
-  // Add any readiness checks here (database, external services, etc.)
-  res.json({
-    status: 'ready',
-    service: 'auth-service',
-    timestamp: new Date().toISOString()
-  });
-});
-
-module.exports = router;
+export default router;

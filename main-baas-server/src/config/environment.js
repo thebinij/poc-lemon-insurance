@@ -1,6 +1,7 @@
 
 // Load environment variables from .env file
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const config = {
   // Server Configuration
@@ -12,11 +13,11 @@ const config = {
 
   // Parse Server Configuration
   parse: {
-    serverUrl: process.env.PARSE_SERVER_URL || 'http://localhost:1337/parse',
+    serverUrl: process.env.PARSE_SERVER_URL,
     appId: process.env.PARSE_APP_ID || 'lemon-insurance-app-id',
     masterKey: process.env.PARSE_MASTER_KEY || 'lemon-insurance-master-key',
     jsKey: process.env.PARSE_JS_KEY || 'lemon-insurance-js-key',
-    publicServerUrl: process.env.PARSE_PUBLIC_SERVER_URL || 'http://localhost:1337/parse'
+    publicServerUrl: process.env.PARSE_PUBLIC_SERVER_URL,
   },
 
   // AWS Configuration
@@ -92,9 +93,9 @@ config.getAwsConfig = () => {
 };
 
 config.getSqsQueueUrl = () => {
-  if (config.aws.useLocalStack) {
-    return `${config.aws.endpoint}/000000000000/${config.sqs.queueName}`;
-  }
+  // if (config.aws.useLocalStack) {
+  //   return `${config.aws.endpoint}/000000000000/${config.sqs.queueName}`;
+  // }
   return config.sqs.queueUrl;
 };
 
@@ -119,4 +120,4 @@ config.validate = () => {
 };
 
 // Export configuration
-module.exports = config;
+export default config;

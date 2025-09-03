@@ -1,31 +1,13 @@
-const express = require('express');
+import express from 'express';
+import parseService from '../services/parseService.js';
+import { validateInsuranceRequest } from '../validation/insuranceValidation.js';
+import { publishToSQS } from "../services/sqsService.js";
+import { authMiddleware } from '../middlewares/auth.js';
+import { v4 as uuidv4 } from 'uuid';
+import ValidationError from '../errors/validationError.js';
+import asyncHandler from '../utils/asyncHandler.js';
+
 const router = express.Router();
-const parseService = require('../services/parseService');
-const { validateInsuranceRequest } = require('../validation/insuranceValidation');
-const { v4: uuidv4 } = require('uuid');
-
-const ValidationError = require('../errors/validationError');
-const AuthError = require('../errors/authErrror');
-const asyncHandler = require('../utils/asyncHandler');
-
-// Health check
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Insurance API health check successful',
-    data: {
-      status: 'healthy',
-      supportedTypes: ['travel', 'motor'],
-      endpoints: [
-        '/:insuranceType/GetAvailablePlans',
-        '/:insuranceType/SaveSelectedPlan',
-        '/:insuranceType/ProceedPayment',
-        '/:insuranceType/ConfirmPurchase'
-      ],
-      timestamp: new Date().toISOString()
-    }
-  });
-});
 
 // Generic Insurance API Endpoints
 // 1. Get Available Plans
@@ -43,9 +25,9 @@ router.post('/:insuranceType/GetAvailablePlans', asyncHandler(async (req, res) =
   // Step 2: Create new user
   const userInfo = await parseService.createUser({
     insuranceType: insuranceType,
-    email: req.body.email,
-    phone: req.body.phone,
-    name: req.body.name,
+    email: req.body?.insuredDetail.email,
+    phone: req.body?.insuredDetail.phone,
+    name: req.body?.insuredDetail.fullName,
     ipAddress: req.ip,
     userAgent: req.get('User-Agent')
   });
@@ -64,32 +46,34 @@ router.post('/:insuranceType/GetAvailablePlans', asyncHandler(async (req, res) =
     userAgent: req.get('User-Agent')
   });
 
-  const response = {
+  // Step 4: Publish event to SQS
+  await publishToSQS({
+    eventType: 'GetAvailablePlans',
+    insuranceType,
+    requestId,
+    userInfo: {
+      userId: userInfo.userId,
+      sessionToken: userInfo.sessionToken,
+      isNewUser: userInfo.isNewUser,
+    },
+    timestamp: new Date().toISOString(),
+    payload: req.body
+  });
+
+ res.json({
     success: true,
-    message: `Available ${insuranceType} plans retrieved`,
+    message: `Available ${insuranceType} plans queued for processing`,
     data: {
       requestId,
       sessionToken: userInfo.sessionToken,
       userId: userInfo.userId,
-      isNewUser: userInfo.isNewUser,
-      plans: [
-        { id: 'plan1', name: `Basic ${insuranceType} Plan`, premium: 100 },
-        { id: 'plan2', name: `Premium ${insuranceType} Plan`, premium: 200 }
-      ]
+      isNewUser: userInfo.isNewUser
     }
-  };
-
-  await parseService.updateAPILog(requestId, insuranceType, {
-    status: 'success',
-    response: response,
-    responseTime: 150
   });
-
-  res.json(response);
 }));
 
 // 2. Save Selected Plan
-router.post('/:insuranceType/SaveSelectedPlan', asyncHandler(async (req, res) => {
+router.post('/:insuranceType/SaveSelectedPlan', authMiddleware, asyncHandler(async (req, res) => {
   const requestId = uuidv4();
   const { insuranceType } = req.params;
   const requestData = req.body;
@@ -100,11 +84,8 @@ router.post('/:insuranceType/SaveSelectedPlan', asyncHandler(async (req, res) =>
     throw new ValidationError(validation.error);
   }
 
-  // Step 2: Validate session
-  const user = await parseService.getUserBySessionToken(req.body.sessionToken);
-  if (!user) {
-    throw new AuthError('Invalid or expired sessionToken');
-  }
+  // Step 2: User is already validated by auth middleware
+  const user = req.user;
 
   // Step 3: Log API call
   await parseService.logAPICall({
@@ -140,7 +121,7 @@ router.post('/:insuranceType/SaveSelectedPlan', asyncHandler(async (req, res) =>
 }));
 
 // 3. Proceed Payment
-router.post('/:insuranceType/ProceedPayment', asyncHandler(async (req, res) => {
+router.post('/:insuranceType/ProceedPayment', authMiddleware, asyncHandler(async (req, res) => {
   const requestId = uuidv4();
   const { insuranceType } = req.params;
   const requestData = req.body;
@@ -151,11 +132,8 @@ router.post('/:insuranceType/ProceedPayment', asyncHandler(async (req, res) => {
     throw new ValidationError(validation.error);
   }
 
-  // Step 2: Validate session
-  const user = await parseService.getUserBySessionToken(req.body.sessionToken);
-  if (!user) {
-    throw new AuthError('Invalid or expired sessionToken');
-  }
+  // Step 2: User is already validated by auth middleware
+  const user = req.user;
 
   // Step 3: Log API call
   await parseService.logAPICall({
@@ -191,7 +169,7 @@ router.post('/:insuranceType/ProceedPayment', asyncHandler(async (req, res) => {
 }));
 
 // 4. Confirm Purchase
-router.post('/:insuranceType/ConfirmPurchase', asyncHandler(async (req, res) => {
+router.post('/:insuranceType/ConfirmPurchase', authMiddleware, asyncHandler(async (req, res) => {
     const requestId = uuidv4();
     const { insuranceType } = req.params;
     const requestData = req.body;
@@ -202,11 +180,8 @@ router.post('/:insuranceType/ConfirmPurchase', asyncHandler(async (req, res) => 
       throw new ValidationError(validation.error);
     }
 
-    // Step 2: Validate session
-    const user = await parseService.getUserBySessionToken(req.body.sessionToken);
-    if (!user) {
-      throw new AuthError('Invalid or expired sessionToken');
-    }
+    // Step 2: User is already validated by auth middleware
+    const user = req.user;
 
     // Step 3: Log API call
     await parseService.logAPICall({
@@ -241,4 +216,36 @@ router.post('/:insuranceType/ConfirmPurchase', asyncHandler(async (req, res) => 
     res.json(response);
 }));
 
-module.exports = router;
+// 5. Check Status
+router.get('/:insuranceType/CheckStatus', authMiddleware, asyncHandler(async (req, res) => {
+  const { insuranceType } = req.params;
+  const { requestId } = req.query;
+
+  if (!requestId) {
+    return res.status(400).json({ success: false, message: 'requestId is required' });
+  }
+
+  // User is already validated by auth middleware
+  const user = req.user;
+
+  // Fetch log entry
+  const logEntry = await parseService.getAPILogByRequestId(requestId, insuranceType);
+
+  if (!logEntry) {
+    return res.status(404).json({ success: false, message: 'Request log not found' });
+  }
+
+  res.json({
+    success: true,
+    data: {
+      requestId: logEntry.get('requestId'),
+      status: logEntry.get('status'),
+      step: logEntry.get('step'),
+      response: logEntry.get('response') || {},
+      timestamp: logEntry.get('timestamp')
+    }
+  });
+}));
+
+
+export default router;

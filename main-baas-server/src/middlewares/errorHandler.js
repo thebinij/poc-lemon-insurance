@@ -1,4 +1,4 @@
-const HttpError = require('../errors/httpError');
+import HttpError from '../errors/httpError.js';
 
 function errorHandler(err, req, res, next) {
   console.error(err); // always log for debugging
@@ -19,4 +19,4 @@ function errorHandler(err, req, res, next) {
   });
 }
 
-module.exports = errorHandler;
+export default errorHandler;

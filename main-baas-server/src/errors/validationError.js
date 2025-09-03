@@ -1,4 +1,4 @@
-const HttpError = require('./httpError');
+import HttpError from './httpError.js';
 
 class ValidationError extends HttpError {
   constructor(message, data = null) {
@@ -6,4 +6,4 @@ class ValidationError extends HttpError {
   }
 }
 
-module.exports = ValidationError;
+export default ValidationError;

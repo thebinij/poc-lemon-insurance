@@ -1,13 +1,18 @@
 meta {
-  name: Confirm Purchase
+  name: Check Status
   type: http
-  seq: 5
+  seq: 7
 }
 
-post {
-  url: {{baseUrl}}/api/insurance/:insuranceType/ConfirmPurchase
-  body: json
+get {
+  url: {{baseUrl}}/api/insurance/:insuranceType/CheckStatus?sessionToken={{session_token}}&requestId=293b13ff-8568-46c9-9a2f-bae65845a913
+  body: none
   auth: inherit
+}
+
+params:query {
+  sessionToken: {{session_token}}
+  requestId: 293b13ff-8568-46c9-9a2f-bae65845a913
 }
 
 params:path {
@@ -16,15 +21,6 @@ params:path {
 
 headers {
   Content-Type: application/json
-}
-
-body:json {
-  {
-    "sessionToken": "{{session_token}}",
-    "channelCode": "direct",
-    "channel": "direct",
-    "source": "direct"
-  }
 }
 
 settings {

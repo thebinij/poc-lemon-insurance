@@ -2,14 +2,15 @@
   "name": "main-baas-server",
   "version": "1.0.0",
   "description": "Main Baas Server with Parse Server and SQS integration",
-  "main": "src/main.js",
+  "type": "module",
+  "main": "src/index.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "start": "node src/main.js",
-    "dev": "nodemon src/main.js",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
     "migrate": "node src/scripts/migrate-parse.js",
     "test": "jest",
     "test:watch": "jest --watch",

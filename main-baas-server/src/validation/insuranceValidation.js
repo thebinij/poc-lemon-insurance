@@ -1,4 +1,4 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
 // Common validation schemas
 const commonSchemas = {
@@ -184,7 +184,7 @@ function validateInsuranceRequest(insuranceType, endpoint, data) {
   }
 }
 
-module.exports = {
+export {
   insuranceSchemas,
   commonSchemas,
   validateInsuranceRequest

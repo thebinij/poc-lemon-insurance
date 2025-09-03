@@ -1,12 +1,6 @@
 // Validation layer exports
-const { 
+export { 
   validateInsuranceRequest, 
   insuranceSchemas, 
   commonSchemas 
-} = require('./insuranceValidation');
-
-module.exports = {
-  validateInsuranceRequest,
-  insuranceSchemas,
-  commonSchemas
-};
+} from './insuranceValidation.js';

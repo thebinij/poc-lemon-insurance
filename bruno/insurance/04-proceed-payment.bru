@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{baseUrl}}/api/insurance/:insuranceType/ProceedPayment
-  body: none
+  body: json
   auth: inherit
 }
 
@@ -20,7 +20,6 @@ headers {
 
 body:json {
   {
-    "insuranceType": "travel",
     "amount": 10.7,
     "channelCode": "direct",
     "channel": "direct",

@@ -1,4 +1,4 @@
-const HttpError = require('./httpError');
+import HttpError from './httpError.js';
 
 class AuthError extends HttpError {
   constructor(message = 'Unauthorized') {
@@ -6,4 +6,4 @@ class AuthError extends HttpError {
   }
 }
 
-module.exports = AuthError;
+export default AuthError;
