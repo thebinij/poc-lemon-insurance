@@ -126,3 +126,7 @@ Thumbs.db
 # AWS Lambda deployment packages
 *.zip
 deployment-package.zip
+
+scripts/
+motorValidation/
+src/*

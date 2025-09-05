@@ -17,13 +17,16 @@ provider "aws" {
   skip_metadata_api_check     = var.use_localstack
   skip_requesting_account_id  = var.use_localstack
   
-  endpoints = var.use_localstack ? {
-    sns     = "http://localhost:4566"
-    sqs     = "http://localhost:4566"
-    lambda  = "http://localhost:4566"
-    iam     = "http://localhost:4566"
-    logs    = "http://localhost:4566"
-  } : {}
+  dynamic "endpoints" {
+    for_each = var.use_localstack ? [1] : []
+    content {
+      sns     = "http://localhost:4566"
+      sqs     = "http://localhost:4566"
+      lambda  = "http://localhost:4566"
+      iam     = "http://localhost:4566"
+      logs    = "http://localhost:4566"
+    }
+  }
 }
 
 # Data sources

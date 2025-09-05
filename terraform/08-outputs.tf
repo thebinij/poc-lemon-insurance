@@ -59,16 +59,10 @@ output "lambda_log_groups" {
 output "test_commands" {
   description = "Commands to test the infrastructure"
   value = {
-    travel_request_sns_publish = var.use_localstack ? 
-      "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'" :
-      "aws sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'"
+    travel_request_sns_publish = var.use_localstack ? "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'" : "aws sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'"
     
-    travel_response_sns_publish = var.use_localstack ?
-      "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'" :
-      "aws sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'"
+    travel_response_sns_publish = var.use_localstack ? "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'" : "aws sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'"
     
-    travel_get_plan_queue_check = var.use_localstack ?
-      "awslocal sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All" :
-      "aws sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All"
+    travel_get_plan_queue_check = var.use_localstack ? "awslocal sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All" : "aws sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All"
   }
 }

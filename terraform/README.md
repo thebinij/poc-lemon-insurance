@@ -1,17 +1,4 @@
-# Motor Validation Infrastructure with Terraform
-
-This Terraform configuration deploys a complete motor validation workflow using SNS, SQS, and Lambda for both LocalStack (local development) and AWS (production).
-
-## Architecture
-
-```
-SNS Topic (motor-insurance-events)
-    ↓ (publishes message with eventType: "validation")
-SQS Queue (motor-validation-queue)
-    ↓ (triggers Lambda via event source mapping)
-Lambda Function (MotorValidationLambda)
-    ↓ (processes the message)
-```
+# Infrastructure with Terraform
 
 ## Prerequisites
 
@@ -57,10 +44,13 @@ export TF_VAR_environment=prod
 
 
 # Plan the deployment
-terraform plan
+terraform plan -out=plan.out
+
+# Validate terraform
+terraform validate
 
 # Apply the configuration
-terraform apply
+terraform apply "plan.out"
 ```
 
 ## Configuration
@@ -101,10 +91,11 @@ terraform apply
 
 ```bash
 # Get the SNS topic ARN
-TOPIC_ARN=$(terraform output -raw motor_sns_topic_arn)
+awslocal sns list-topics
 
 # Publish a test message
-awslocal sns publish --topic-arn "$TOPIC_ARN" --message '{"eventType":"validation","policyId":"123","testMessage":"Hello from Terraform!"}'
+## Event Type: get_plan, policy_creation, policy_update, policy_confirmation, purchase_policy, purchase_confirmation
+awslocal sns publish --topic-arn "$TOPIC_ARN" --message '{"eventType":"get_plan", "policyId":"123","testMessage":"Create Policy"}'
 
 # Check SQS queue status
 QUEUE_URL=$(terraform output -raw motor_sqs_queue_url)
@@ -161,7 +152,8 @@ terraform apply
 TOPIC_ARN=$(terraform output -raw motor_sns_topic_arn)
 
 # Publish a test message
-aws sns publish --topic-arn "$TOPIC_ARN" --message '{"eventType":"validation","policyId":"123","testMessage":"Hello from AWS!"}'
+## Event Type: get_plan, policy_creation, policy_update, policy_confirmation, purchase_policy, purchase_confirmation
+aws sns publish --topic-arn "$TOPIC_ARN" --message '{"eventType":"get_plan","policyId":"123","testMessage":"Hello from AWS!"}'
 
 # Check SQS queue status
 QUEUE_URL=$(terraform output -raw motor_sqs_queue_url)

@@ -133,7 +133,7 @@ resource "aws_lambda_function" "functions" {
 
   # For LocalStack, use S3 bucket with hot-reload
   s3_bucket = var.use_localstack ? "hot-reload" : null
-  s3_key    = var.use_localstack ? "lambda/" : null
+  s3_key    = var.use_localstack ? "/lambda/" : null
 
   # For AWS, use the shared package approach
   filename = var.use_localstack ? null : "lambda-package.zip"
