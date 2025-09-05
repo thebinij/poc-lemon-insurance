@@ -1,7 +1,7 @@
 # Copy this file to terraform.tfvars and modify as needed
 
 # Environment Configuration
-aws_region    = "us-east-1"
+aws_region    = "ap-southeast-1"
 environment   = "dev"
 project_name  = "lemon-insurance"
 use_localstack = true  # Set to false for AWS deployment

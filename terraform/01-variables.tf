@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
+  default     = "ap-southeast-1"
 }
 
 variable "environment" {
@@ -81,7 +81,7 @@ variable "travel_lead_queue_name" {
 variable "sqs_visibility_timeout" {
   description = "SQS visibility timeout in seconds"
   type        = number
-  default     = 30
+  default     = 90
 }
 
 variable "sqs_message_retention_period" {
@@ -106,4 +106,17 @@ variable "lambda_runtime" {
   description = "Lambda runtime for all functions"
   type        = string
   default     = "nodejs20.x"
+}
+
+# DynamoDB Variables
+variable "travel_event_responses_table_name" {
+  description = "Name of the DynamoDB table for storing travel event responses"
+  type        = string
+  default     = "TravelEventResponses"
+}
+
+variable "dynamodb_ttl_minutes" {
+  description = "TTL in minutes for DynamoDB items (items will be automatically deleted after this time)"
+  type        = number
+  default     = 1
 }

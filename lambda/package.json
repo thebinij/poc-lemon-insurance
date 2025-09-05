@@ -1,8 +1,7 @@
 {
-  "name": "insurance-lambda",
+  "name": "insurance-lambda-monorepo",
   "version": "1.0.0",
-  "description": "Lambda function to process SQS messages from insurance service with Parse Server integration",
-  "main": "src/handler.js",
+  "description": "Monorepo for all Lambda functions in the insurance service",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
@@ -13,19 +12,33 @@
   "keywords": [
     "lambda",
     "aws",
+    "sns",
     "sqs",
+    "dynamodb",
     "insurance",
-    "parse-server"
+    "parse-server",
+    "monorepo"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-sqs": "^3.490.0",
+    "@aws-sdk/client-sns": "^3.490.0",
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
     "uuid": "^10.0.0",
     "parse": "^6.1.1",
     "mongodb": "^6.5.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
-  }
+  },
+  "workspaces": [
+    "travelGetPlan",
+    "travelPolicyService", 
+    "travelPayment",
+    "travelNotificationService",
+    "travelPolicyCancellation",
+    "travelLead",
+    "dynamodbProcessor"
+  ]
 }

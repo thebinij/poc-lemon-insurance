@@ -82,25 +82,6 @@ resource "aws_sqs_queue" "travel_notification" {
   })
 }
 
-# Travel Event Response Queue
-# Linked Lambda: All Lambda functions produce messages here
-# Purpose: Always receives a response from every Lambda (success or failure). Used to send back to frontend or other services
-resource "aws_sqs_queue" "travel_event_response" {
-  name = var.travel_event_response_queue_name
-
-  visibility_timeout_seconds     = var.sqs_visibility_timeout
-  message_retention_seconds      = var.sqs_message_retention_period
-  max_message_size               = var.sqs_maximum_message_size
-  receive_wait_time_seconds      = 0
-  sqs_managed_sse_enabled        = true
-
-  tags = merge(local.common_tags, {
-    Name        = "Travel Event Response Queue"
-    Purpose     = "Receives responses from all Lambda functions"
-    Service     = "travel"
-    Environment = var.environment
-  })
-}
 
 # Travel Policy Cancellation Queue
 # Linked Lambda: TravelPolicyCancellationLambda

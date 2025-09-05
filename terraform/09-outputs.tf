@@ -1,6 +1,6 @@
 # Outputs Configuration
 # This file defines all Terraform outputs for the travel insurance system
-# Execution Order: 08 - Outputs defined last
+# Execution Order: 09 - Outputs defined last
 
 # SNS Topics Outputs
 output "sns_topics" {
@@ -19,7 +19,6 @@ output "sqs_queues" {
     travel_policy                = aws_sqs_queue.travel_policy.url
     travel_payment               = aws_sqs_queue.travel_payment.url
     travel_notification          = aws_sqs_queue.travel_notification.url
-    travel_event_response        = aws_sqs_queue.travel_event_response.url
     travel_policy_cancellation   = aws_sqs_queue.travel_policy_cancellation.url
     travel_lead                  = aws_sqs_queue.travel_lead.url
   }
@@ -55,14 +54,38 @@ output "lambda_log_groups" {
   }
 }
 
+# DynamoDB Outputs
+output "dynamodb_tables" {
+  description = "All DynamoDB tables"
+  value = {
+    travel_event_responses = {
+      name = aws_dynamodb_table.travel_event_responses.name
+      arn  = aws_dynamodb_table.travel_event_responses.arn
+    }
+  }
+}
+
+# DynamoDB Lambda Function Outputs
+output "dynamodb_processor_lambda_name" {
+  description = "Name of the DynamoDB Processor Lambda Function"
+  value       = aws_lambda_function.dynamodb_processor.function_name
+}
+
+output "dynamodb_processor_lambda_arn" {
+  description = "ARN of the DynamoDB Processor Lambda Function"
+  value       = aws_lambda_function.dynamodb_processor.arn
+}
+
 # Test command outputs
 output "test_commands" {
   description = "Commands to test the infrastructure"
   value = {
     travel_request_sns_publish = var.use_localstack ? "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'" : "aws sns publish --topic-arn ${aws_sns_topic.travel_event_request.arn} --message '{\"eventType\":\"get_plan\",\"policyId\":\"123\"}'"
     
-    travel_response_sns_publish = var.use_localstack ? "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'" : "aws sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\"}'"
+    travel_response_sns_publish = var.use_localstack ? "awslocal sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\",\"requestId\":\"test-123\"}'" : "aws sns publish --topic-arn ${aws_sns_topic.travel_event_response.arn} --message '{\"status\":\"success\",\"lead\":\"true\",\"policyId\":\"456\",\"requestId\":\"test-123\"}'"
     
     travel_get_plan_queue_check = var.use_localstack ? "awslocal sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All" : "aws sqs get-queue-attributes --queue-url ${aws_sqs_queue.travel_get_plan.url} --attribute-names All"
+    
+    dynamodb_query_response = var.use_localstack ? "awslocal dynamodb query --table-name ${aws_dynamodb_table.travel_event_responses.name} --key-condition-expression 'requestId = :requestId' --expression-attribute-values '{':requestId':{\"S\":\"test-123\"}}'" : "aws dynamodb query --table-name ${aws_dynamodb_table.travel_event_responses.name} --key-condition-expression 'requestId = :requestId' --expression-attribute-values '{':requestId':{\"S\":\"test-123\"}}'"
   }
 }

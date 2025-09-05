@@ -5,11 +5,11 @@
 # Local variables for Lambda functions
 locals {
   lambda_functions = {
-    # Travel Insurance Lambda Functions
+
     travelGetPlan = {
       name        = "TravelGetPlanLambda"
       handler     = "travelGetPlan/handler.handler"
-      description = "Processes GetPlan requests. On success → write to TravelEventResponseQueue. On failure → write to TravelEventResponseQueue + trigger TravelNotificationQueue via TravelEventResponseSNS. Triggers TravelLeadQueue via TravelEventResponseSNS"
+      description = "Processes GetPlan requests and handles responses"
       timeout     = 30
       memory_size = 128
     }
@@ -17,7 +17,7 @@ locals {
     travelPolicyService = {
       name        = "TravelPolicyServiceLambda"
       handler     = "travelPolicyService/handler.handler"
-      description = "Handles PolicyCreation / Update / Confirmation. On success → write to TravelEventResponseQueue. On failure → write to TravelEventResponseQueue + trigger TravelNotificationQueue via TravelEventResponseSNS. Triggers TravelPolicyCancellationQueue if step requires cancel. Triggers TravelLeadQueue via TravelEventResponseSNS"
+      description = "Handles PolicyCreation, Update, and Confirmation"
       timeout     = 60
       memory_size = 256
     }
@@ -25,7 +25,7 @@ locals {
     travelPayment = {
       name        = "TravelPaymentLambda"
       handler     = "travelPayment/handler.handler"
-      description = "Handles Purchase / Payment Confirmation. On success → write to TravelEventResponseQueue. On failure → write to TravelEventResponseQueue + trigger TravelNotificationQueue via TravelEventResponseSNS. Triggers TravelPolicyCancellationQueue if purchase fails. Triggers TravelLeadQueue via TravelEventResponseSNS"
+      description = "Handles Purchase and Payment Confirmation"
       timeout     = 60
       memory_size = 256
     }
@@ -33,7 +33,7 @@ locals {
     travelNotificationService = {
       name        = "TravelNotificationServiceLambda"
       handler     = "travelNotificationService/handler.handler"
-      description = "Sends notifications (popups, emails, etc.). Triggered by failure messages from TravelEventResponseSNS"
+      description = "Sends notifications for failures"
       timeout     = 30
       memory_size = 128
     }
@@ -41,7 +41,7 @@ locals {
     travelPolicyCancellation = {
       name        = "TravelPolicyCancellationLambda"
       handler     = "travelPolicyCancellation/handler.handler"
-      description = "Handles policy rollback/cancellation triggered by failure in PolicyCreation, Confirmation, or Purchase"
+      description = "Handles policy rollback and cancellation"
       timeout     = 45
       memory_size = 128
     }
@@ -49,7 +49,7 @@ locals {
     travelLead = {
       name        = "TravelLeadLambda"
       handler     = "travelLead/handler.handler"
-      description = "Processes lead generation for every step (success or failure) using UTM/source data"
+      description = "Processes lead generation for every step"
       timeout     = 30
       memory_size = 128
     }
@@ -134,11 +134,18 @@ resource "aws_lambda_function" "functions" {
   # For LocalStack, use individual zip files
   filename = "lambdas/${each.key}.zip"
 
+  environment {
+    variables = merge(
+      {
+        TRAVEL_EVENT_RESPONSE_TOPIC_ARN = aws_sns_topic.travel_event_response.arn
+      },
+      var.use_localstack ? { AWS_ENDPOINT_URL = "http://localhost:4566" } : {}
+    )
+  }
 
   tags = merge(local.common_tags, {
-    Name        = each.value.name
-    Function    = each.key
-    Description = each.value.description
+    Name     = each.value.name
+    Function = each.key
   })
 }
 

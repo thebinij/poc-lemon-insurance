@@ -94,28 +94,6 @@ resource "aws_sqs_queue_policy" "travel_notification_policy" {
   })
 }
 
-# Travel Event Response Queue Policy
-# Allows all Lambda functions to send messages
-resource "aws_sqs_queue_policy" "travel_event_response_policy" {
-  queue_url = aws_sqs_queue.travel_event_response.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = "*"
-        Action = "sqs:SendMessage"
-        Resource = aws_sqs_queue.travel_event_response.arn
-        Condition = {
-          ArnEquals = {
-            "aws:SourceArn" = aws_sns_topic.travel_event_response.arn
-          }
-        }
-      }
-    ]
-  })
-}
 
 # Travel Policy Cancellation Queue Policy
 # Allows TravelEventResponseSNS to send cancellation messages

@@ -42,3 +42,4 @@ docker-compose.override.yml
 
 secondary-baas-server
 run.sh
+check-workflow.sh

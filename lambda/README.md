@@ -1,104 +1,85 @@
-# Insurance Lambda Handler
+# Lambda Monorepo Structure
 
-This Lambda function processes SQS messages from the insurance service. It's designed to be production-ready and deployable to both AWS and LocalStack environments with the exact same code.
+This directory contains all Lambda functions for the insurance service in a monorepo pattern.
 
-## Architecture
+## Structure
 
-- **Single Codebase**: Same handler code runs in both AWS Lambda and LocalStack
-- **Event-Driven**: Automatically triggered by SQS events (no polling logic)
-- **Production-Ready**: Handles batch processing, error handling, and retries
-- **Business Logic**: Processes different types of insurance events
+```
+lambda/
+├── package.json                 # Single package.json with all dependencies
+├── scripts/                     # Build scripts for different Lambda types
+│   ├── build-all-lambdas.sh    # Build all Lambda functions
+│   ├── build-dynamodb-lambda.sh # Build only DynamoDB processor
+│   └── build-travel-lambdas.sh  # Build only Travel Lambda functions
+├── travelGetPlan/              # Travel Get Plan Lambda
+├── travelPolicyService/        # Travel Policy Service Lambda
+├── travelPayment/              # Travel Payment Lambda
+├── travelNotificationService/  # Travel Notification Service Lambda
+├── travelPolicyCancellation/   # Travel Policy Cancellation Lambda
+├── travelLead/                 # Travel Lead Lambda
+└── dynamodbProcessor/          # DynamoDB Processor Lambda
+```
 
-## Features
+## Dependencies
 
-- **SQS Integration**: Automatically triggered by SQS events
-- **Batch Processing**: Handles multiple messages in a single invocation
-- **Error Handling**: Returns batch item failures for failed messages
-- **Event Types**: Supports multiple insurance event types:
-  - `INSURANCE_QUOTE_REQUESTED`
-  - `INSURANCE_PURCHASE_COMPLETED`
-  - `INSURANCE_CLAIM_SUBMITTED`
+The monorepo uses a single `package.json` with all dependencies:
+
+### All Dependencies
+- `@aws-sdk/client-sns` - For SNS operations
+- `@aws-sdk/client-dynamodb` - For DynamoDB operations
+- `@aws-sdk/lib-dynamodb` - For DynamoDB document operations
+- `uuid` - For UUID generation
+- `parse` - For Parse Server integration
+- `mongodb` - For MongoDB operations
+
+### Selective Installation
+
+Each Lambda function gets only the dependencies it needs:
+
+- **Travel Lambda functions**: `@aws-sdk/client-sns`, `uuid`, `parse`, `mongodb`
+- **DynamoDB Processor**: `@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`
+
+## Build Scripts
+
+### Build All Lambdas
+```bash
+npm run build:all
+# or
+./scripts/build-all-lambdas.sh
+```
+
+### Build DynamoDB Lambda Only
+```bash
+npm run build:dynamodb
+# or
+./scripts/build-dynamodb-lambda.sh
+```
+
+### Build Travel Lambdas Only
+```bash
+npm run build:travel
+# or
+./scripts/build-travel-lambdas.sh
+```
+
+## Benefits
+
+1. **Single Source of Truth**: One `package.json` for all dependencies
+2. **Selective Dependencies**: Each Lambda gets only what it needs
+3. **Easier Maintenance**: Update dependencies in one place
+4. **Consistent Versions**: All functions use the same dependency versions
+5. **Faster Builds**: Dependencies are installed once and reused
 
 ## Usage
 
-### AWS Lambda (Production)
-1. Build the deployment package: `npm run build`
-2. Upload `../function-prod.zip` to AWS Lambda
-3. Configure SQS event source mapping to trigger the function
+1. Install all dependencies: `npm install`
+2. Build all Lambda functions: `npm run build:all`
+3. Deploy with Terraform: `terraform apply`
 
-### LocalStack
-1. Deploy to LocalStack: `npm run deploy:localstack`
-2. Configure SQS event source mapping in LocalStack
-3. Send messages to the SQS queue to trigger the function
+## Adding New Lambda Functions
 
-### Local Testing
-Test the handler with mock events: `npm test`
-
-## Environment Variables
-
-The handler automatically detects the environment and works with:
-- **AWS**: Uses default AWS credentials and endpoints
-- **LocalStack**: Uses LocalStack endpoints and local credentials
-
-## Scripts
-
-- `npm run build` - Create production deployment package
-- `npm test` - Test handler locally with mock SQS events
-
-## LocalStack Setup
-
-Use the provided setup script to deploy to LocalStack:
-
-```bash
-# From the project root
-./scripts/setup-localstack.sh
-```
-
-This script will:
-1. Start LocalStack and wait for it to be ready
-2. Create the SQS queue
-3. Deploy the Lambda function
-4. Configure the event source mapping
-5. Clean up temporary files
-
-Alternatively, you can run the steps manually:
-1. Start LocalStack: `docker-compose up -d`
-2. Run setup script: `./scripts/setup-localstack.sh`
-
-## Message Format
-
-The handler expects SQS messages with this structure:
-
-```json
-{
-  "eventType": "INSURANCE_QUOTE_REQUESTED",
-  "insuranceType": "AUTO",
-  "requestId": "req-123",
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "status": "pending"
-}
-```
-
-## Response Format
-
-Successful processing returns:
-```json
-{
-  "statusCode": 200,
-  "body": {
-    "message": "All messages processed successfully",
-    "processedCount": 1,
-    "results": [...]
-  }
-}
-```
-
-Failed messages return batch item failures for SQS retry:
-```json
-{
-  "batchItemFailures": [
-    { "itemIdentifier": "message-id" }
-  ],
-  "results": [...]
-}
-```
+1. Create the function directory: `mkdir newFunction`
+2. Add the handler: `newFunction/handler.js`
+3. Add to `package.json` workspaces array
+4. Add to build scripts as needed
+5. Update Terraform configuration

@@ -12,7 +12,6 @@ resource "aws_sns_topic_subscription" "travel_get_plan_request" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_get_plan.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     eventType = ["get_plan"]
   })
@@ -25,7 +24,6 @@ resource "aws_sns_topic_subscription" "travel_policy_request" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_policy.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     eventType = ["policy_creation", "policy_update", "policy_confirmation"]
   })
@@ -38,7 +36,6 @@ resource "aws_sns_topic_subscription" "travel_payment_request" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_payment.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     eventType = ["purchase_policy", "purchase_confirmation"]
   })
@@ -54,7 +51,6 @@ resource "aws_sns_topic_subscription" "travel_notification_response" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_notification.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     status = ["failure"]
     notification = ["true"]
@@ -68,12 +64,12 @@ resource "aws_sns_topic_subscription" "travel_policy_cancellation_response" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_policy_cancellation.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     status = ["failure"]
     cancellation = ["true"]
   })
 }
+
 
 # Travel Lead Subscription
 # Triggered by TravelEventResponseSNS for all events (success or failure)
@@ -82,8 +78,15 @@ resource "aws_sns_topic_subscription" "travel_lead_response" {
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.travel_lead.arn
 
-  filter_policy_scope = "MessageBody"
   filter_policy = jsonencode({
     lead = ["true"]
   })
+}
+
+# DynamoDB Storage Subscription
+# Triggered by TravelEventResponseSNS for all events (success or failure) to store in DynamoDB
+resource "aws_sns_topic_subscription" "travel_event_response_dynamodb" {
+  topic_arn = aws_sns_topic.travel_event_response.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.dynamodb_processor.arn
 }

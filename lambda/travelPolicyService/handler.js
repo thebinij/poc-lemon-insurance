@@ -1,3 +1,10 @@
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+
+const snsClient = new SNSClient({
+    region: process.env.AWS_REGION || 'ap-southeast-1',
+    ...(process.env.AWS_ENDPOINT_URL && { endpoint: process.env.AWS_ENDPOINT_URL })
+});
+
 exports.handler = async (event) => {
     console.log("Travel Policy Service Lambda triggered!");
     console.log("Received event:", JSON.stringify(event, null, 2));
@@ -8,7 +15,12 @@ exports.handler = async (event) => {
             console.log("Processing message:", record.body);
             // Add your travel policy service logic here
             try {
-                const message = JSON.parse(record.body);
+                // Parse the SNS notification
+                const snsNotification = JSON.parse(record.body);
+                console.log("SNS Notification received:", snsNotification);
+                
+                // Extract the actual message from SNS notification
+                const message = JSON.parse(snsNotification.Message);
                 console.log("Travel policy service request for:", message);
                 
                 // TODO: Implement travel policy service logic
@@ -17,8 +29,73 @@ exports.handler = async (event) => {
                 // - Store policy information
                 // - Send notifications
                 
+                // Simulate successful processing
+                const responseMessage = {
+                    status: "success",
+                    service: "travelPolicyService",
+                    policyId: message.policyId || "456",
+                    timestamp: new Date().toISOString(),
+                    data: {
+                        message: "Travel policy service completed",
+                        policyStatus: "created",
+                        policyNumber: "POL-" + Math.random().toString(36).slice(2, 9).toUpperCase()
+                    }
+                };
+
+                // Publish success response to Travel Event Response SNS
+                const publishCommand = new PublishCommand({
+                    TopicArn: process.env.TRAVEL_EVENT_RESPONSE_TOPIC_ARN,
+                    Message: JSON.stringify(responseMessage),
+                    MessageAttributes: {
+                        status: {
+                            DataType: 'String',
+                            StringValue: 'success'
+                        },
+                        service: {
+                            DataType: 'String',
+                            StringValue: 'travelPolicyService'
+                        }
+                    }
+                });
+                await snsClient.send(publishCommand);
+
+                console.log("Success response published to Travel Event Response SNS");
+                
             } catch (error) {
                 console.error("Error processing travel policy service request:", error);
+                
+                // Publish failure response to Travel Event Response SNS
+                const errorMessage = {
+                    status: "failure",
+                    service: "travelPolicyService",
+                    policyId: "unknown",
+                    timestamp: new Date().toISOString(),
+                    error: {
+                        message: error.message,
+                        code: "TRAVEL_POLICY_SERVICE_ERROR"
+                    }
+                };
+
+                try {
+                    const errorPublishCommand = new PublishCommand({
+                        TopicArn: process.env.TRAVEL_EVENT_RESPONSE_TOPIC_ARN,
+                        Message: JSON.stringify(errorMessage),
+                        MessageAttributes: {
+                            status: {
+                                DataType: 'String',
+                                StringValue: 'failure'
+                            },
+                            service: {
+                                DataType: 'String',
+                                StringValue: 'travelPolicyService'
+                            }
+                        }
+                    });
+                    await snsClient.send(errorPublishCommand);
+                    console.log("Error response published to Travel Event Response SNS");
+                } catch (snsError) {
+                    console.error("Failed to publish error response to SNS:", snsError);
+                }
             }
         }
     }
