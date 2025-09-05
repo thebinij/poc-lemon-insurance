@@ -103,6 +103,8 @@ awslocal sqs get-queue-attributes --queue-url "$QUEUE_URL" --attribute-names All
 
 # Check Lambda logs
 awslocal logs describe-log-groups --log-group-name-prefix /aws/lambda
+awslocal logs describe-log-streams  --log-group-name /aws/lambda/TravelGetPlanLambda  --order-by LastEventTime --descending
+awslocal logs get-log-events --log-group-name /aws/lambda/TravelGetPlanLambda --log-stream-name "2025/09/05/[\$LATEST]a4be70b6811a162b3bcb7a0b8ac6a270"
 ```
 
 ### 4. Clean Up

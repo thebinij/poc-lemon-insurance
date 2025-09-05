@@ -16,8 +16,6 @@ resource "aws_sns_topic_subscription" "travel_get_plan_request" {
   filter_policy = jsonencode({
     eventType = ["get_plan"]
   })
-
-  raw_message_delivery = true
 }
 
 # Travel Policy Subscription
@@ -31,8 +29,6 @@ resource "aws_sns_topic_subscription" "travel_policy_request" {
   filter_policy = jsonencode({
     eventType = ["policy_creation", "policy_update", "policy_confirmation"]
   })
-
-  raw_message_delivery = true
 }
 
 # Travel Payment Subscription
@@ -46,8 +42,6 @@ resource "aws_sns_topic_subscription" "travel_payment_request" {
   filter_policy = jsonencode({
     eventType = ["purchase_policy", "purchase_confirmation"]
   })
-
-  raw_message_delivery = true
 }
 
 # TravelEventResponseSNS Subscriptions
@@ -65,8 +59,6 @@ resource "aws_sns_topic_subscription" "travel_notification_response" {
     status = ["failure"]
     notification = ["true"]
   })
-
-  raw_message_delivery = true
 }
 
 # Travel Policy Cancellation Subscription
@@ -81,8 +73,6 @@ resource "aws_sns_topic_subscription" "travel_policy_cancellation_response" {
     status = ["failure"]
     cancellation = ["true"]
   })
-
-  raw_message_delivery = true
 }
 
 # Travel Lead Subscription
@@ -96,6 +86,4 @@ resource "aws_sns_topic_subscription" "travel_lead_response" {
   filter_policy = jsonencode({
     lead = ["true"]
   })
-
-  raw_message_delivery = true
 }

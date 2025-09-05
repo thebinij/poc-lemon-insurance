@@ -87,3 +87,6 @@ plan.out
 
 # Terraform apply logs
 apply.log
+
+# Lambdas
+lambdas/

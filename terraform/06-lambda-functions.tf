@@ -131,12 +131,9 @@ resource "aws_lambda_function" "functions" {
   memory_size  = each.value.memory_size
   description  = each.value.description
 
-  # For LocalStack, use S3 bucket with hot-reload
-  s3_bucket = var.use_localstack ? "hot-reload" : null
-  s3_key    = var.use_localstack ? "/lambda/" : null
+  # For LocalStack, use individual zip files
+  filename = "lambdas/${each.key}.zip"
 
-  # For AWS, use the shared package approach
-  filename = var.use_localstack ? null : "lambda-package.zip"
 
   tags = merge(local.common_tags, {
     Name        = each.value.name
