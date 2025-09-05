@@ -1,8 +1,8 @@
-# 🍋 Lemon Insurance Backend
+# Lemon Insurance Backend
 
 A comprehensive backend system built with Node.js, Express, Parse Server, MongoDB, AWS SQS, and Lambda functions. This architecture provides a scalable foundation for authentication, data management, and event processing.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -28,7 +28,7 @@ A comprehensive backend system built with Node.js, Express, Parse Server, MongoD
 - **Bruno**: API testing tool integrated within main-baas-server
 - **LocalStack**: Local AWS services emulator for development
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -97,7 +97,7 @@ Bruno is integrated within main-baas-server and provides:
 - Environment management (local, staging, production)
 - Request/response examples
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentication
 
@@ -125,7 +125,7 @@ POST /parse/classes/AuthEvent
 GET  /parse/Workflow
 ```
 
-## 🔄 Event Flow
+## Event Flow
 
 1. **User Action**: User signs up or logs in via Main Baas Server
 2. **SQS Message**: Main Baas Server publishes event to SQS queue
@@ -152,7 +152,7 @@ curl -X GET "http://localhost:1337/parse/classes/AuthEvent" \
   -H "X-Parse-Master-Key: lemon-insurance-master-key"
 ```
 
-## 🗄️ Database Schema
+## Database Schema
 
 ### Core Collections
 
@@ -177,7 +177,7 @@ await parseClient.createCustomRecord('InsurancePolicy', {
 });
 ```
 
-## 🐳 Docker Services
+## Docker Services
 
 ### Service Ports
 
@@ -221,7 +221,7 @@ npm run dev
 3. **Lambda**: Start with `npm run dev:lambda` (runs locally for testing)
 4. **Bruno**: Start with `npm run dev:bruno` (runs on port 3001 for API testing)
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -233,7 +233,6 @@ npm run dev
 | `PARSE_APP_ID` | Parse Server app ID | `lemon-insurance-app-id` |
 | `PARSE_MASTER_KEY` | Parse Server master key | `lemon-insurance-master-key` |
 | `PARSE_JS_KEY` | Parse Server JS key | `lemon-insurance-js-key` |
-| `JWT_SECRET` | JWT signing secret | `your-secret-key` |
 
 ### Parse Server Configuration
 
@@ -243,7 +242,7 @@ Parse Server is configured with:
 - Security settings with master keys
 - LiveQuery support for real-time updates
 
-## 🧪 Testing Strategies
+## Testing Strategies
 
 ### Unit Tests
 
@@ -277,7 +276,7 @@ Access Parse Server dashboard at: http://localhost:1337/parse
 
 Access Bruno at: http://localhost:3001
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -304,7 +303,7 @@ docker-compose logs -f --tail=100
 - [Bruno Documentation](https://www.usebruno.com/)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch

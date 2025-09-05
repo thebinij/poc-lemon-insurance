@@ -1,77 +1,40 @@
-# ======================
-# Node.js
-# ======================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-package-lock.json
-*.tsbuildinfo
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# ======================
-# Logs
-# ======================
-logs/
-*.log
-*.log.*
-log/
-debug.log
-error.log
-
-# ======================
-# Environment Variables
-# ======================
-.env
-.env.*        # For .env.development, .env.production, etc.
-
-# ======================
-# Coverage / Testing
-# ======================
-coverage/
-.nyc_output/
-jest-test-results.json
-/lambda/.serverless/
-.auth-service/.serverless/
-
-# ======================
-# Serverless
-# ======================
-.serverless/
-.webpack/
-
-# ======================
-# Docker
-# ======================
-/volume/
-docker-compose.override.yml
-
-# ======================
-# IDE / Editor
-# ======================
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*.DS_Store
+*~
 
-# ======================
-# Build Artifacts
-# ======================
-dist/
-build/
-out/
-tmp/
-temp/
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# ======================
-# OS Files
-# ======================
-Thumbs.db
-.DS_Store
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
+# Dependencies
+node_modules/
+bower_components/
 
-function-prod.zip
-lambda-policy.json
-trust-policy.json
-help.md
+# Backup files
+*.bak
+*.backup
+
+# Docker
+.dockerignore
+docker-compose.override.yml

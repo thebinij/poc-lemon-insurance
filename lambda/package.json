@@ -8,7 +8,7 @@
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "build": "npm install && zip -r ../function-prod.zip src/ package.json node_modules/ && echo 'Production package created: ../function-prod.zip'"
+    "build": "npm install && zip -r ../function-prod.zip travelGetPlan/ travelPolicyService/ travelPayment/ travelNotificationService/ travelPolicyCancellation/ travelLead/ package.json node_modules/ && echo 'Production package created: ../function-prod.zip'"
   },
   "keywords": [
     "lambda",

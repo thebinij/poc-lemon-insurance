@@ -1,0 +1,29 @@
+# Copy this file to terraform.tfvars and modify as needed
+
+# Environment Configuration
+aws_region    = "us-east-1"
+environment   = "dev"
+project_name  = "lemon-insurance"
+use_localstack = true  # Set to false for AWS deployment
+
+# SNS Topics
+travel_event_request_topic_name = "TravelEventRequestSNS"
+travel_event_response_topic_name = "TravelEventResponseSNS"
+
+# SQS Queues
+travel_get_plan_queue_name = "TravelGetPlanQueue"
+travel_policy_queue_name = "TravelPolicyQueue"
+travel_payment_queue_name = "TravelPaymentQueue"
+travel_notification_queue_name = "TravelNotificationQueue"
+travel_event_response_queue_name = "TravelEventResponseQueue"
+travel_policy_cancellation_queue_name = "TravelPolicyCancellationQueue"
+travel_lead_queue_name = "TravelLeadQueue"
+
+# Lambda Configuration
+lambda_runtime = "nodejs20.x"
+lambda_batch_size = 10
+
+# SQS Configuration
+sqs_visibility_timeout = 30
+sqs_message_retention_period = 1209600  # 14 days
+sqs_maximum_message_size = 262144   # 256 KB
