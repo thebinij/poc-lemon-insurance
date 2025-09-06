@@ -54,17 +54,6 @@ QUEUE_URL=...
 awslocal sqs get-queue-attributes --queue-url "$QUEUE_URL" --attribute-names All
 aws sqs get-queue-attributes --queue-url "$QUEUE_URL" --attribute-names All
 
-# Get SNS topic ARN
-awslocal sns list-topics
-aws sns list-topics
-
-# List SQS queues
-awslocal sqs list-queues
-aws sqs list-queues
-
-# Lambda logs
-awslocal logs describe-log-groups --log-group-name-prefix /aws/lambda
-aws logs describe-log-groups --log-group-name-prefix /aws/lambda
 
 # Receive one message from queue (dev example shown)
 awslocal sqs receive-message \
@@ -100,9 +89,6 @@ awslocal logs describe-log-groups \
 # Publish a test message
 ## Event Type: get_plan, policy_creation, policy_update, policy_confirmation, purchase_policy, purchase_confirmation
 awslocal sns publish --topic-arn "$TOPIC_ARN" --message '{"policyId":"123","testMessage":"Get travel insurance plans"}' --message-attributes '{"eventType":{"DataType":"String","StringValue":"get_plan"}}'
-
-# Get SQS queue attributes
-
 
 ```
 
