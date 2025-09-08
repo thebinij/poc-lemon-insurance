@@ -28,7 +28,6 @@ The monorepo uses a single `package.json` with all dependencies:
 - `@aws-sdk/client-sns` - For SNS operations
 - `@aws-sdk/client-dynamodb` - For DynamoDB operations
 - `@aws-sdk/lib-dynamodb` - For DynamoDB document operations
-- `uuid` - For UUID generation
 - `parse` - For Parse Server integration
 - `mongodb` - For MongoDB operations
 
