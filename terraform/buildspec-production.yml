@@ -1,0 +1,42 @@
+version: 0.2
+
+env:
+  variables:
+    TF_VAR_environment: "live"
+    TF_VAR_sqs_message_retention_period: "1209600"  # 14 days
+    TF_VAR_lambda_batch_size: "10"
+    TF_VAR_use_localstack: "false"
+
+phases:
+  pre_build:
+    commands:
+      - echo "🚀 Starting PRODUCTION deployment..."
+      - echo "Environment: $ENVIRONMENT"
+      - echo "AWS Region: $AWS_DEFAULT_REGION"
+      
+  build:
+    commands:
+      - echo "📦 Installing Terraform..."
+      - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+      - unzip terraform_1.6.0_linux_amd64.zip
+      - chmod +x terraform
+      - mv terraform /usr/local/bin/
+      
+      - echo "🔧 Initializing Terraform..."
+      - cd terraform
+      - terraform init
+      
+      - echo "✅ Validating configuration..."
+      - terraform validate
+      
+      - echo "📋 Planning PRODUCTION deployment..."
+      - terraform plan -out=production.tfplan
+      
+      - echo "🚀 Applying PRODUCTION deployment..."
+      - terraform apply -auto-approve production.tfplan
+      
+  post_build:
+    commands:
+      - echo "✅ PRODUCTION deployment completed successfully!"
+      - echo "📊 Environment details:"
+      - echo "   - Environment: LIVE"
